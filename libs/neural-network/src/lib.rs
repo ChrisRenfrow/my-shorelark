@@ -31,7 +31,13 @@ struct Layer {
 
 impl Layer {
     pub fn random(input_neurons: usize, output_neurons: usize) -> Self {
-        todo!()
+        let mut neurons = Vec::new();
+
+        for _ in 0..output_neurons {
+            neurons.push(Neuron::random(input_neurons));
+        }
+
+        Self { neurons }
     }
 
     fn propagate(&self, inputs: Vec<f32>) -> Vec<f32> {
