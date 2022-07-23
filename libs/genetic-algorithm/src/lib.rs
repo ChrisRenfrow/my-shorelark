@@ -1,3 +1,5 @@
+use rand::seq::SliceRandom;
+use rand::Rng;
 use rand::RngCore;
 
 pub trait Individual {
@@ -5,10 +7,28 @@ pub trait Individual {
 }
 
 pub trait SelectionMethod {
-    fn select<'a, R, I>(&self, rng: &mut R, population: &'a [I]) -> &'a I
+    fn select<'a, I>(&self, rng: &mut dyn RngCore, population: &'a [I]) -> &'a I
     where
-        R: RngCore,
         I: Individual;
+}
+
+pub struct RouletteWheelSelection;
+
+impl RouletteWheelSelection {
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl SelectionMethod for RouletteWheelSelection {
+    fn select<'a, I>(&self, rng: &mut dyn RngCore, population: &'a [I]) -> &'a I
+    where
+        I: Individual,
+    {
+        population
+            .choose_weighted(rng, |individual| individual.fitness())
+            .expect("got an empty population")
+    }
 }
 
 pub struct GeneticAlgorithm;
@@ -27,9 +47,10 @@ impl GeneticAlgorithm {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
+    fn test() {
+        todo!();
     }
 }
