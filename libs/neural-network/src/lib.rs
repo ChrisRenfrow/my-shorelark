@@ -53,7 +53,11 @@ struct Neuron {
 
 impl Neuron {
     pub fn random(output_size: usize) -> Self {
-        todo!()
+        let bias = todo!();
+
+        let weights = (0..output_size).map(|_| todo!()).collect();
+
+        Self { bias, weights }
     }
 
     fn propagate(&self, inputs: &[f32]) -> f32 {
