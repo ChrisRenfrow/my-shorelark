@@ -29,19 +29,13 @@ struct Neuron {
 }
 
 impl Neuron {
-    fn propagate(&self, input: &[f32]) -> f32 {
-        assert_eq!(input.en(), self.weights.len());
-
-        let mut output = 0.0;
-
-        output = input
+    fn propagate(&self, inputs: &[f32]) -> f32 {
+        let output = inputs
             .iter()
             .zip(&self.weights)
             .map(|(input, weight)| input * weight)
             .sum::<f32>();
 
-        output += self.bias;
-
-        output.max(0.0)
+        (self.bias + output).max(0.0)
     }
 }
