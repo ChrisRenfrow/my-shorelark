@@ -31,17 +31,83 @@ impl SelectionMethod for RouletteWheelSelection {
     }
 }
 
-pub struct GeneticAlgorithm;
+pub struct GeneticAlgorithm<S> {
+    selection_method: S,
+}
 
-impl GeneticAlgorithm {
-    pub fn new() -> Self {
-        Self
+impl<S> GeneticAlgorithm<S>
+where
+    S: SelectionMethod,
+{
+    pub fn new(selection_method: S) -> Self {
+        Self { selection_method }
     }
 
-    pub fn evolve<I>(&self, population: &[I], evaluate_fitness: &dyn Fn(&I) -> f32) -> Vec<I> {
+    pub fn evolve<I>(
+        &self,
+        rng: &mut dyn RngCore,
+        population: &[I],
+        evaluate_fitness: &dyn Fn(&I) -> f32,
+    ) -> Vec<I>
+    where
+        I: Individual,
+    {
         assert!(!population.is_empty());
 
-        (0..population.len()).map(|_| todo!()).collect()
+        (0..population.len())
+            .map(|_| {
+                let parent_a = self.selection_method.select(rng, population);
+                let parent_b = self.selection_method.select(rng, population);
+
+                // TODO: crossover
+                // TODO mutation
+                todo!();
+            })
+            .collect()
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Chromosome {
+    genes: Vec<f32>,
+}
+
+impl Chromosome {
+    pub fn len(&self) -> usize {
+        self.genes.len()
+    }
+
+    pub fn iter(&self) -> Iterator<Item = &f32> {
+        self.genes.iter()
+    }
+
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut f32> {
+        self.genes.iter_mut()
+    }
+}
+
+impl Index<usize> for Chromosome {
+    type Output = f32;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.genes[index]
+    }
+}
+
+impl FromIterator<f32> for Chromosome {
+    fn from_iter<T: IntoIterator<Item = f32>>(iter: T) -> Self {
+        Self {
+            genes: iter.into_iter().collect(),
+        }
+    }
+}
+
+impl IntoIterator for Chromosome {
+    type Item = f32;
+    type IntoIter = impl Iterator<Item = f32>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.genes.into_iter()
     }
 }
 
