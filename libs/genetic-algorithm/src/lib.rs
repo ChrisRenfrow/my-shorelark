@@ -8,8 +8,8 @@ use std::iter::FromIterator;
 use std::ops::Index;
 
 pub trait Individual {
+    fn create(chromosome: Chromosome) -> Self;
     fn chromosome(&self) -> &Chromosome;
-
     fn fitness(&self) -> f32;
 }
 
@@ -81,15 +81,14 @@ where
         assert!(!population.is_empty());
 
         (0..population.len())
-            .for_each(|_| {
+            .map(|_| {
                 let parent_a = self.selection_method.select(rng, population).chromosome();
                 let parent_b = self.selection_method.select(rng, population).chromosome();
 
                 let mut child = self.crossover_method.crossover(rng, parent_a, parent_b);
                 self.mutation_method.mutate(rng, &mut child);
 
-                // TODO convert `Chromosome` back into `Individual
-                todo!()
+                I::create(child)
             })
             .collect()
     }
@@ -206,26 +205,46 @@ impl MutationMethod for GaussianMutation {
 }
 
 #[cfg(test)]
-#[derive(Clone, Debug)]
-pub struct TestIndividual {
-    fitness: f32,
+#[derive(Clone, Debug, PartialEq)]
+pub enum TestIndividual {
+    /// For tests that require access to chromosome
+    WithChromosome { chromosome: Chromosome },
+
+    /// For tests that don't require access to chromosome
+    WithFitness { fitness: f32 },
 }
 
 #[cfg(test)]
 impl TestIndividual {
     pub fn new(fitness: f32) -> Self {
-        Self { fitness }
+        Self::WithFitness { fitness }
     }
 }
 
 #[cfg(test)]
 impl Individual for TestIndividual {
+    fn create(chromosome: Chromosome) -> Self {
+        Self::WithChromosome { chromosome }
+    }
+
     fn chromosome(&self) -> &Chromosome {
-        panic!("not supported for TestIndividual")
+        match self {
+            Self::WithChromosome { chromosome } => chromosome,
+            Self::WithFitness { .. } => {
+                panic!("not supported for TestIndividual::WithFitness")
+            }
+        }
     }
 
     fn fitness(&self) -> f32 {
-        self.fitness
+        match self {
+            Self::WithChromosome { chromosome } => {
+                chromosome.iter().sum()
+                // ^ simple fitness function which sums all of the genes together, probably not effective
+            }
+
+            Self::WithFitness { fitness } => *fitness,
+        }
     }
 }
 
