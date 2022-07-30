@@ -254,7 +254,6 @@ impl PartialEq for Chromosome {
 mod tests {
     use super::*;
 
-    use approx::assert_relative_eq;
     use rand::SeedableRng;
     use rand_chacha::ChaCha8Rng;
     use std::collections::BTreeMap;
@@ -409,6 +408,7 @@ mod tests {
             }
         }
     }
+
     mod given_max_chance {
         fn actual(coeff: f32) -> Vec<f32> {
             super::actual(1.0, coeff)
