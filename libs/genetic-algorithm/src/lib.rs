@@ -133,7 +133,7 @@ impl IntoIterator for Chromosome {
     }
 }
 
-#[derive()]
+#[derive(Clone, Debug)]
 pub struct UniformCrossover;
 
 impl UniformCrossover {
