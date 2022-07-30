@@ -249,6 +249,13 @@ impl Individual for TestIndividual {
 }
 
 #[cfg(test)]
+impl PartialEq for Chromosome {
+    fn eq(&self, other: &Self) -> bool {
+        approx::relative_eq!(self.genes.as_slice(), other.genes.as_slice(),)
+    }
+}
+
+#[cfg(test)]
 mod tests {
     use super::*;
 
