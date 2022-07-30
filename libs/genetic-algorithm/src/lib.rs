@@ -1,8 +1,15 @@
+#![feature(min_type_alias_impl_trait)]
+
 use rand::seq::SliceRandom;
 use rand::Rng;
 use rand::RngCore;
 
+use std::iter::FromIterator;
+use std::ops::Index;
+
 pub trait Individual {
+    fn chromosome(&self) -> &Chromosome;
+
     fn fitness(&self) -> f32;
 }
 
@@ -10,6 +17,15 @@ pub trait SelectionMethod {
     fn select<'a, I>(&self, rng: &mut dyn RngCore, population: &'a [I]) -> &'a I
     where
         I: Individual;
+}
+
+pub trait CrossoverMethod {
+    fn crossover(
+        &self,
+        rng: &mut dyn RngCore,
+        parent_a: &Chromosome,
+        parent_b: &Chromosome,
+    ) -> Chromosome;
 }
 
 pub struct RouletteWheelSelection;
@@ -33,14 +49,18 @@ impl SelectionMethod for RouletteWheelSelection {
 
 pub struct GeneticAlgorithm<S> {
     selection_method: S,
+    crossover_method: Box<dyn CrossoverMethod>,
 }
 
 impl<S> GeneticAlgorithm<S>
 where
     S: SelectionMethod,
 {
-    pub fn new(selection_method: S) -> Self {
-        Self { selection_method }
+    pub fn new(selection_method: S, crossover_method: impl CrossoverMethod + 'static) -> Self {
+        Self {
+            selection_method,
+            crossover_method: Box::new(crossover_method),
+        }
     }
 
     pub fn evolve<I>(
@@ -56,10 +76,11 @@ where
 
         (0..population.len())
             .map(|_| {
-                let parent_a = self.selection_method.select(rng, population);
-                let parent_b = self.selection_method.select(rng, population);
+                let parent_a = self.selection_method.select(rng, population).chromosome();
+                let parent_b = self.selection_method.select(rng, population).chromosome();
 
-                // TODO: crossover
+                let mut child = self.crossover_method.crossover(rng, parent_a, parent_b);
+
                 // TODO mutation
                 todo!();
             })
@@ -77,7 +98,7 @@ impl Chromosome {
         self.genes.len()
     }
 
-    pub fn iter(&self) -> Iterator<Item = &f32> {
+    pub fn iter(&self) -> impl Iterator<Item = &f32> {
         self.genes.iter()
     }
 
@@ -104,11 +125,44 @@ impl FromIterator<f32> for Chromosome {
 
 impl IntoIterator for Chromosome {
     type Item = f32;
+
     type IntoIter = impl Iterator<Item = f32>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.genes.into_iter()
     }
+}
+
+#[derive()]
+pub struct UniformCrossover;
+
+impl UniformCrossover {
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl CrossoverMethod for UniformCrossover {
+    fn crossover(
+        &self,
+        rng: &mut dyn RngCore,
+        parent_a: &Chromosome,
+        parent_b: &Chromosome,
+    ) -> Chromosome {
+        assert_eq!(parent_a.len(), parent_b.len());
+
+        let parent_a = parent_a.iter();
+        let parent_b = parent_b.iter();
+
+        parent_a
+            .zip(parent_b)
+            .map(|(&a, &b)| if rng.gen_bool(0.5) { a } else { b })
+            .collect()
+    }
+}
+
+pub trait MutationMethod {
+    fn mutate(&self, rng: &mut dyn RngCore, child: &mut Chromosome);
 }
 
 #[cfg(test)]
@@ -126,6 +180,10 @@ impl TestIndividual {
 
 #[cfg(test)]
 impl Individual for TestIndividual {
+    fn chromosome(&self) -> &Chromosome {
+        panic!("not supported for TestIndividual")
+    }
+
     fn fitness(&self) -> f32 {
         self.fitness
     }
@@ -137,7 +195,7 @@ mod tests {
 
     use rand::SeedableRng;
     use rand_chacha::ChaCha8Rng;
-    use std::{collections::BTreeMap, iter::FromIterator};
+    use std::collections::BTreeMap;
 
     #[test]
     fn test() {
@@ -167,5 +225,20 @@ mod tests {
         };
 
         assert_eq!(actual_histogram, expected_histogram);
+    }
+
+    #[test]
+    fn test_crossover() {
+        let mut rng = ChaCha8Rng::from_seed(Default::default());
+        let parent_a: Chromosome = (1..=100).map(|n| n as f32).collect();
+        let parent_b: Chromosome = (1..=100).map(|n| -n as f32).collect();
+
+        let child = UniformCrossover::new().crossover(&mut rng, &parent_a, &parent_b);
+
+        let diff_a = child.iter().zip(parent_a).filter(|(c, p)| *c != p).count();
+        let diff_b = child.iter().zip(parent_b).filter(|(c, p)| *c != p).count();
+
+        assert_eq!(diff_a, 49);
+        assert_eq!(diff_b, 51);
     }
 }
