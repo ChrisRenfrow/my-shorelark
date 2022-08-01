@@ -8,6 +8,8 @@ pub struct Animal {
     pub(crate) speed: f32,
     pub(crate) eye: Eye,
     pub(crate) brain: nn::Network,
+    // Number of foods eaten by this animal
+    pub(crate) satiation: usize,
 }
 
 impl Animal {
@@ -36,6 +38,7 @@ impl Animal {
             speed: 0.002,
             eye,
             brain,
+            satiation: 0,
         }
     }
 

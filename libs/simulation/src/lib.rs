@@ -1,12 +1,15 @@
 pub use self::{animal::*, eye::*, food::*, world::*};
 
 mod animal;
+mod animal_individual;
 mod eye;
 mod food;
 mod world;
 
+use self::animal_individual::*;
 use lib_genetic_algorithm as ga;
 use lib_neural_network as nn;
+use na::indexing;
 use nalgebra as na;
 use rand::{Rng, RngCore};
 
@@ -30,8 +33,8 @@ impl Simulation {
         let world = World::random(rng);
 
         let ga = ga::GeneticAlgorithm::new(
-            ga::RouletteWheelSelection::default(),
-            ga::UniformCrossover::default(),
+            ga::RouletteWheelSelection::new(),
+            ga::UniformCrossover::new(),
             ga::GaussianMutation::new(0.01, 0.3),
         );
 
@@ -57,10 +60,19 @@ impl Simulation {
     fn evolve(&mut self, rng: &mut dyn RngCore) {
         self.age = 0;
 
-        let current_population = todo!();
+        let current_population: Vec<_> = self
+            .world
+            .animals
+            .iter()
+            .map(AnimalIndividual::from_animal)
+            .collect();
+
         let evolved_population = self.ga.evolve(rng, &current_population);
 
-        self.world.animals = todo!();
+        self.world.animals = evolved_population
+            .into_iter()
+            .map(|individual| individual.into_animal(rng))
+            .collect();
 
         for food in &mut self.world.foods {
             food.position = rng.gen();
@@ -81,6 +93,7 @@ impl Simulation {
                 let distance = na::distance(&animal.position, &food.position);
 
                 if distance <= 0.01 {
+                    animal.satiation += 1;
                     food.position = rng.gen();
                 }
             }
