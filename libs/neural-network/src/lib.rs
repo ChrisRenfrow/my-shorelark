@@ -1,6 +1,6 @@
 use rand::Rng;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Network {
     layers: Vec<Layer>,
 }
@@ -28,7 +28,7 @@ impl Network {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 struct Layer {
     neurons: Vec<Neuron>,
 }
