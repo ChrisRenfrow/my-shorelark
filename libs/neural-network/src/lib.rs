@@ -28,7 +28,7 @@ impl Network {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 struct Layer {
     neurons: Vec<Neuron>,
 }
