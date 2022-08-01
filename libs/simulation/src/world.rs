@@ -1,6 +1,5 @@
 use crate::*;
 
-#[derive(Debug)]
 pub struct World {
     pub(crate) animals: Vec<Animal>,
     pub(crate) foods: Vec<Food>,

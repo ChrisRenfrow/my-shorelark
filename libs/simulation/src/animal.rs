@@ -1,7 +1,6 @@
 use crate::*;
 
 // TODO: Look into refactoring this using ECS (Entity Component System)
-#[derive(Debug)]
 pub struct Animal {
     pub(crate) position: na::Point2<f32>,
     // The following could also be represented as a vector!

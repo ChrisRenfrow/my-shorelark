@@ -1,6 +1,6 @@
 use rand::Rng;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Network {
     layers: Vec<Layer>,
 }
