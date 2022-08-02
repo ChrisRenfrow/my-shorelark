@@ -1,7 +1,8 @@
-pub use self::{animal::*, eye::*, food::*, world::*};
+pub use self::{animal::*, brain::*, eye::*, food::*, world::*};
 
 mod animal;
 mod animal_individual;
+mod brain;
 mod eye;
 mod food;
 mod world;
