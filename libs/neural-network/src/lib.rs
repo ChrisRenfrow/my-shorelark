@@ -1,6 +1,6 @@
 use rand::Rng;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Network {
     layers: Vec<Layer>,
 }
@@ -60,7 +60,7 @@ impl Network {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 struct Layer {
     neurons: Vec<Neuron>,
 }
@@ -102,7 +102,7 @@ impl Layer {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 struct Neuron {
     bias: f32,
     weights: Vec<f32>,
@@ -221,7 +221,7 @@ mod tests {
 
             let weights = vec![0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8];
             let network = Network::from_weights(layers, weights.clone());
-            let actual: Vec<_> = network.weights().collect();
+            let actual = network.weights();
 
             approx::assert_relative_eq!(actual.as_slice(), weights.as_slice(),);
         }
